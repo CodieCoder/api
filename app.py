@@ -1,5 +1,5 @@
 from json import dumps
-from flask import Flask, Response, url_for, request, redirect, session
+from flask import Flask, Response, url_for, request, redirect
 from pymongo import MongoClient
 from flask_cors import CORS
 import flask
@@ -11,13 +11,15 @@ from json import dumps
 app = Flask(__name__)
 CORS(app)
 
-db_client = MongoClient("mongodb+srv://develop:7HV4hsiVxS2JhjtV@develop.9co1n6k.mongodb.net/?retryWrites=true&w=majority")
+db_client = MongoClient("mongodb+srv://develop:MWw4cOeJ2uh9mqBK@cluster0.rwhi2uj.mongodb.net/?retryWrites=true&w=majority")
 
-# try:
-#     db_client.admin.command('ping')
-#     print('Pinged your deployment. You successfully connected to MongoDB!')
-# except Exception as e:
-#     print(e)
+mydb = db_client["cluster0"]
+userDoc = mydb["users"]
+try:
+    db_client.admin.command('ping')
+    print('Pinged your deployment. You successfully connected to MongoDB!')
+except Exception as e:
+    print(e)
 
 @app.route('/')
 def home():
@@ -34,12 +36,10 @@ def login():
         password = json_data.get("password")
         print(json_data.get("email"))
 
-        user = User.objects(email=email).first()
+        # user = userDoc.objects(email=email).first()
+        user:User = userDoc.find_one({'email': email})
         if user:
             if check_password(user.password, password):
-                # Manual session management
-                session['user_id'] = str(user.id)
-
                 data_to_return = {
                     "email": user.email,
                     "firstName": user.firstName,
@@ -61,13 +61,7 @@ def login():
         return Response(error_message, 401)
 
 
-@app.route('/logout')
-def logout():
-    # Manual session management
-    session.pop('user_id', None)
-    return redirect(url_for('auth.login'))
-
-
+ 
 @app.route('/signup', methods=['POST'])
 def signup():
     if request.method == 'POST':
@@ -77,7 +71,8 @@ def signup():
         last_name = json_data.get('lastName')
         password = json_data.get('password')
         password2 = json_data.get('password2')
-        user = User.objects(email=email).first()
+        # user = User.objects(email=email).first()
+        user:User = userDoc.find_one({'email': email})
         if user:
             error_message = dumps({"message": "Email already in use"})
             return Response(error_message, 401)
@@ -98,9 +93,6 @@ def signup():
             hashed_password = set_password(password)
             result = User(email=email, firstName=first_name, lastName=last_name, password=hashed_password).save()
             if result:
-                # Manual session management
-                session['user_id'] = str(result.id)
-
                 data_to_post = {"firstName": result.firstName, "lastName": result.lastName, "email": result.email,
                                 "maritalStatus": result.maritalStatus, "country": result.country}
                 success_message = dumps(data_to_post)
