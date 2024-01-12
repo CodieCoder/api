@@ -1,30 +1,13 @@
-from json import dumps
-from flask import Flask, Response, url_for, request, redirect, session
-from pymongo import MongoClient
-from flask_cors import CORS
+from flask import Blueprint, url_for, request, redirect, Response, session
 import flask
-from models.user import User
+from models import User
 from utils.password import set_password, check_password
 from json import dumps
 
+auth = Blueprint('auth', __name__)
 
-app = Flask(__name__)
-CORS(app)
 
-db_client = MongoClient("mongodb+srv://develop:7HV4hsiVxS2JhjtV@develop.9co1n6k.mongodb.net/?retryWrites=true&w=majority")
-
-# try:
-#     db_client.admin.command('ping')
-#     print('Pinged your deployment. You successfully connected to MongoDB!')
-# except Exception as e:
-#     print(e)
-
-@app.route('/')
-def home():
-    message = dumps({'message': 'You do not have access to this resource!'})
-    return Response(message, 200)
-
-@app.route('/login', methods=['POST'])
+@auth.route('/login', methods=['POST'])
 def login():
     response = flask.jsonify({'some': 'data'})
     response.headers.add('Access-Control-Allow-Origin', '*')
@@ -61,14 +44,14 @@ def login():
         return Response(error_message, 401)
 
 
-@app.route('/logout')
+@auth.route('/logout')
 def logout():
     # Manual session management
     session.pop('user_id', None)
     return redirect(url_for('auth.login'))
 
 
-@app.route('/signup', methods=['POST'])
+@auth.route('/signup', methods=['POST'])
 def signup():
     if request.method == 'POST':
         json_data = request.json
@@ -108,6 +91,3 @@ def signup():
             else:
                 error_message = dumps({"message": "Could not create new user. Please try again"})
                 return Response(error_message, 401)
-
-if __name__ == '__main__':
-    app.run()
