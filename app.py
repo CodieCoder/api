@@ -1,8 +1,7 @@
 import os
-from flask import Flask, Response
+from flask import Flask, Response, jsonify
 from flask_cors import CORS
 from waitress import serve
-from json import dumps
 from mongoengine import *
 from routes.auth import user_auth
 
@@ -18,8 +17,8 @@ app.register_blueprint(user_auth)
 
 @app.route('/')
 def home():
-    message = dumps({'message': 'You do not have access to this resource!'})
-    return Response(message, 200)
+    response = jsonify({'message': 'You do not have access to this resource!'})
+    return response
 
 
 if __name__ == '__main__':
