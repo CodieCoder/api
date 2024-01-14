@@ -1,5 +1,5 @@
 import os
-from flask import Flask, Response, jsonify
+from flask import Flask, jsonify
 from flask_cors import CORS
 from waitress import serve
 from mongoengine import *
