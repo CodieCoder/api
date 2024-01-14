@@ -1,6 +1,5 @@
 from datetime import datetime
 from mongoengine import Document, StringField, DateTimeField, EmailField
-# from flask_login import UserMixin
 
 class User(Document):
     firstName = StringField(max_length=20, required=True)
